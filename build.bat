@@ -1,5 +1,5 @@
 @echo off
 
-pico-build build --src ./src --cart ./my-cart.p8 --watch
+pico-build build --watch
 
 pause
