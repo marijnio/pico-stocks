@@ -1,23 +1,6 @@
 pico-8 cartridge // http://www.pico-8.com
 version 16
 __lua__
---pico-stocks
-
-x=64
-y=64
-
-function _update()
- if (btn(0)) then x-=1 end
- if (btn(1)) then x+=1 end
- if (btn(2)) then y-=1 end
- if (btn(3)) then y+=1 end
-end
-
-function _draw()
- rectfill(0,0,127,127,5)
- circfill(x,y,7,14)
-end
--->8
 --data
 
 last_time=0
@@ -29,6 +12,21 @@ clock = {
  active=1
 }
 
+stock = {
+ price=100,
+ mu=.1, --drift
+ sigma=.07 --volatility
+}
+
+function step_stock()
+ dt=.01
+ local drift = stock.mu * dt * stock.price
+ local uncertainty = gaussian(0,1) * sqrt(dt) * stock.sigma * stock.price
+ local change = drift + uncertainty
+ stock.price += change
+ printh("The new price is "..stock.price)
+end
+
 function clock:tick ()
  self.hours += 1
 end
@@ -36,6 +34,7 @@ end
 --main functions
 
 function _init()
+ srand(1)
  _update=gameupdate
  -- _draw=gamedraw
 end
@@ -54,7 +53,8 @@ function update_clock()
   if clock.elapsed > 2 then
    clock:tick()
    clock.elapsed=0
-   printh(clock.hours) 
+   printh("The hour is "..clock.hours)
+   step_stock()
   end
  end
 end
@@ -71,5 +71,24 @@ end
 
 function drawmenu()
 
+end
+-->8
+--natural log results from 0.1 to 1
+log_table = {
+ -2.30259, -1.60944, -1.20397,
+ -0.916291, -0.693147, -0.510826,
+ -0.356675, -0.223144, -0.105361,
+ 0
+}
+
+--crude approximation of natural log
+function log(n)
+ if (n > 1) return nil
+ return log_table[ceil(n*10)]
+end
+
+--returns a number that follows a normal (Gaussian) distribution
+function gaussian (mean, variance)
+ return sqrt(-2 * variance * log(rnd())) * cos(2 * 3.141592 * rnd()) + mean
 end
 
